@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
+# Initialize the product ID counter
+product_id_counter = 10000  # Starting from 10000 to avoid conflicts with existing IDs
+
 def get_largest_image_url(data_srcset):
     """Extract the largest image URL from the data-srcset attribute."""
     images = data_srcset.split(", ")
@@ -47,6 +50,8 @@ def get_product_description_and_image_accordionshop(product_url):
     return description, photo_url
 
 def scrape_accordionproshop(url):
+    global product_id_counter
+    
     # Extract category name from URL
     category_name = url.rstrip('/').split('/')[-1]
 
@@ -70,7 +75,13 @@ def scrape_accordionproshop(url):
 
     for product in products:
         try:
-            product_id = product.find('form').find('input', {'name': 'id'})['value']
+            # Get the product ID or assign a new one
+            product_id = product.find('form').find('input', {'name': 'id'})
+            product_id = product_id['value'] if product_id else product_id_counter
+            if not product_id:
+                product_id = product_id_counter
+                product_id_counter += 1
+
             title = product.find('a', class_='product-item__title').text.strip()
             category = product.find('a', class_='product-item__vendor').text.strip()
             price_tag = product.find('span', class_='money')
@@ -138,6 +149,8 @@ def scrape_accordionproshop(url):
     print(f"Data exported to {file_name}")
 
 def scrape_accordionshop(base_url):
+    global product_id_counter
+    
     # Extract category name from URL
     category_name = base_url.rstrip('/').split('/')[-1]
 
@@ -160,11 +173,15 @@ def scrape_accordionshop(base_url):
                 price_tag = product.find('p', class_='price')
                 price = price_tag.text.strip() if price_tag else 'Price not available'
 
+                # Get the product ID or assign a new one
+                product_id = product_id_counter
+                product_id_counter += 1
+
                 # Extract the product link to fetch the description and image
                 description, photo_url = get_product_description_and_image_accordionshop(product_link)
                 
                 product_data.append({
-                    'ID': '',
+                    'ID': product_id,
                     'Type': 'simple',
                     'SKU': '',
                     'Name': title,
