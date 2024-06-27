@@ -32,7 +32,7 @@ def scrape_goldstock(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         
         # Locate the parent container with all products
-        products = soup.find_all('div', class_='normal-product product product-box-desktop-container not-bar')
+        products = soup.find_all('div', class_='normal-product')
         if not products:
             break
 
